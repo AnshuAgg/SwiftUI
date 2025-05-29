@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 class CountryViewModal: ObservableObject {
     
     @Published var countries: [Country] = []
@@ -26,9 +27,9 @@ class CountryViewModal: ObservableObject {
     func fetchCountryList() async throws {
         guard let url = URL(string: "https://restcountries.com/v2/all") else {return}
         
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let response = try JSONDecoder().decode([Country].self, from: data)
-            self.countries = response
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let response = try JSONDecoder().decode([Country].self, from: data)
+        self.countries = response
         
     }
     

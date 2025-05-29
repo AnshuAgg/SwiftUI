@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     
+    @StateObject private var locationManager = LocationManager()
     @StateObject private var viewModal = CountryViewModal()
     let screenWidth = UIScreen.main.bounds.width
     @FocusState private var isSearchFocused: Bool
@@ -69,10 +70,31 @@ struct ContentView: View {
         .task {
             do {
                 try await viewModal.fetchCountryList()
+                
+                if let userCountry = locationManager.currentCountry {
+                    addUserCountry(userCountry)
+                } else if locationManager.permissionDenied {
+                    addDefaultCountry()
+                }
             }
             catch {
                 print("failed to fetch country list with error: \(error)")
             }
+        }
+    }
+    
+    func addUserCountry(_ name: String) {
+        guard let matchedCountry = viewModal.countries.first(where: { $0.name.lowercased() == name.lowercased() }) else {
+            addDefaultCountry()
+            return
+        }
+        
+        viewModal.selectedCountries.insert(matchedCountry, at: 0)
+    }
+    
+    func addDefaultCountry() {
+        if let defaultCountry = viewModal.countries.first(where: { $0.name == "India" }) {
+            viewModal.selectedCountries.insert(defaultCountry, at: 0)
         }
     }
 }
