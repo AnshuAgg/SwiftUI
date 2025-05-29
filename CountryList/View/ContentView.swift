@@ -10,15 +10,60 @@ import SwiftUI
 struct ContentView: View {
     
     @StateObject private var viewModal = CountryViewModal()
+    let screenWidth = UIScreen.main.bounds.width
+    @FocusState private var isSearchFocused: Bool
     
     var body: some View {
         NavigationStack {
             if (viewModal.countries.isEmpty) {
                 ProgressView("Loading...")
             } else {
-                List(viewModal.countries) { country in
-                    Text(country.name).font(.headline)
+                
+                ZStack(alignment: .bottom) {
+                    List(viewModal.filteredCountries) { country in
+                        Button {
+                            viewModal.toggleSelection(of: country)
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(country.name).font(.headline)
+                                    Text("Capital:\(country.capital ?? "N/A")").font(.subheadline)
+                                    Text("Currency: \(country.currencyDisplay)").font(.subheadline).foregroundStyle(.secondary)
+                                }
+                                .padding(.vertical, 5)
+                                Spacer()
+                                if viewModal.isSelected(country) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                }
+                            }
+                        }.disabled(!viewModal.isSelected(country) && viewModal.selectedCountries.count >= 5)
+                    }
+                    
+                    VStack {
+                        if viewModal.selectedCountries.count > 0 {
+                            NavigationLink(destination: MainView(countryList: $viewModal.selectedCountries)) {
+                                        Text("Continue")
+                                            .frame(width: screenWidth - 120, height: 50)
+                                            .background(Color.cyan)
+                                            .foregroundColor(.white)
+                                            .cornerRadius(25)
+                            }.padding()
+                        }
+                    }
                 }.navigationTitle("Country List")
+                    .searchable(text: $viewModal.searchText, prompt: "Search Country").foregroundStyle(.primary)
+                    .focused($isSearchFocused)
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            if isSearchFocused {
+                                Button("Cancel") {
+                                    viewModal.searchText = ""
+                                    isSearchFocused = false
+                                }
+                            }
+                        }
+                    }
             }
         }
         .task {
