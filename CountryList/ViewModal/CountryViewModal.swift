@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import RealmSwift
 
 @MainActor
 class CountryViewModal: ObservableObject {
@@ -30,19 +31,38 @@ class CountryViewModal: ObservableObject {
         let (data, _) = try await URLSession.shared.data(from: url)
         let response = try JSONDecoder().decode([Country].self, from: data)
         self.countries = response
-        
+        saveToRealm(self.countries)
+    }
+    
+    func saveToRealm(_ countries: [Country]) {
+        let realm = try! Realm()
+        let objects = countries.map { CountryObject(from: $0) }
+
+        try! realm.write {
+            realm.delete(realm.objects(CountryObject.self)) // Optional: clear existing
+            realm.add(objects)
+        }
+
+        print("✅ Saved to Realm")
+    }
+    
+    func loadFromRealm() {
+        let realm = try! Realm()
+        let objects = realm.objects(CountryObject.self)
+        self.countries = objects.map { $0.toCountry() }
+        print("📦 Loaded from Realm")
     }
     
     func toggleSelection(of country: Country) {
-            if selectedCountries.contains(where: { $0.id == country.id }) {
-                selectedCountries.removeAll { $0.id == country.id }
-            } else if selectedCountries.count < 5 {
-                selectedCountries.append(country)
-            }
+        if selectedCountries.contains(where: { $0.id == country.id }) {
+            selectedCountries.removeAll { $0.id == country.id }
+        } else if selectedCountries.count < 5 {
+            selectedCountries.append(country)
         }
-
-        func isSelected(_ country: Country) -> Bool {
-            selectedCountries.contains(where: { $0.id == country.id })
-        }
+    }
+    
+    func isSelected(_ country: Country) -> Bool {
+        selectedCountries.contains(where: { $0.id == country.id })
+    }
     
 }

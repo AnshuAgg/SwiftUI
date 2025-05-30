@@ -14,11 +14,6 @@ struct Country: Codable, Identifiable {
     let capital: String?
     let currencies: [Currency]?
     
-    struct Currency: Codable {
-        let name: String
-        let symbol: String
-    }
-    
     var currencyDisplay: String {
         if let first = currencies?.first {
             return "\(first.name) (\(first.symbol))"
@@ -27,4 +22,7 @@ struct Country: Codable, Identifiable {
     }
 }
 
-
+struct Currency: Codable {
+    let name: String
+    let symbol: String
+}

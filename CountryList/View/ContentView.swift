@@ -78,7 +78,9 @@ struct ContentView: View {
                 }
             }
             catch {
-                print("failed to fetch country list with error: \(error)")
+                print("🌐 API failed to fetch country list with error: \(error)")
+                viewModal.loadFromRealm()
+                addDefaultCountry()
             }
         }
     }
